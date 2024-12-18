@@ -261,9 +261,9 @@ while True:
     # else:
     write_buffer.put(lastframe)
     for mid in output:
-        # mid = (((mid[0]*255.).byte().cpu().numpy().transpose(1,2,0)))
-        mid_tensor =torch.from_numpy(mid[0])
-        mid = (((mid_tensor * 255.).byte().cpu().numpy().transpose(1, 2, 0)))
+        mid = (((mid[0]*255.).byte().cpu().numpy().transpose(1,2,0)))
+        # mid_tensor =torch.from_numpy(mid[0])
+        # mid = (((mid_tensor * 255.).byte().cpu().numpy().transpose(1, 2, 0)))
         write_buffer.put(mid[:h, :w])
     pbar.update(1)
     lastframe = frame
