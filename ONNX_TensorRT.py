@@ -1,3 +1,4 @@
+### 根据onnx文件生成tensorrt的engine文件
 import torch
 import onnx
 import tensorrt as trt
@@ -27,7 +28,7 @@ network = builder.create_network(EXPLICIT_BATCH)    #创建一个TensorRT网络�
 
 parser = trt.OnnxParser(network, logger) #创建一个ONNX解析器，将ONNX模型解析为TensorRT网络
 
-onnx_model = onnx.load("/home/jason/RIFE_ONNX_TRT_RKNN/ECCV2022-RIFE/train_log/IFNet.onnx")
+onnx_model = onnx.load("/home/jason/RIFE_ONNX_TRT_RKNN/ECCV2022-RIFE/train_log/IFNet_fp32.onnx")
 device = torch.device("cuda")
 if not parser.parse(onnx_model.SerializeToString()):   #解析ONNX模型，使用.SerializeToString()序列化为字节流格式
     error_msgs = ''
@@ -49,6 +50,6 @@ with torch.cuda.device(device):
 #使用builder.build_engine()根据网络定义和配置构建TensorRT引擎
 
 ### 保存引擎到文件
-with open('model.engine', mode='wb') as f:  #生成二进制文件
+with open('model_fp32.engine', mode='wb') as f:  #生成二进制文件
     f.write(bytearray(engine.serialize()))
     print("generating file done!")

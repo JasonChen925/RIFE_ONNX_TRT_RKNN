@@ -1,3 +1,4 @@
+# 代码实现了一个TensorRT模型推理包装类TRTWrapper，主要用于加载TensorRT生成的engine引擎，并提供Pytorch兼容的前向推理接口。
 from typing import Union, Optional, Sequence, Dict, Any
 import torch
 import tensorrt as trt
