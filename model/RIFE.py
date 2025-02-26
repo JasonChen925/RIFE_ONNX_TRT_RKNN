@@ -4,14 +4,14 @@ import numpy as np
 from torch.optim import AdamW
 import torch.optim as optim
 import itertools
-from model.warplayer import warp
+from warplayer import warp
 from torch.nn.parallel import DistributedDataParallel as DDP
-from model.IFNet import *
-from model.IFNet_m import *
+from IFNet import *
+from IFNet_m import *
 import torch.nn.functional as F
-from model.loss import *
-from model.laplacian import *
-from model.refine import *
+from loss import *
+from laplacian import *
+from refine import *
 
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     

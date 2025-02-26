@@ -3,13 +3,12 @@ import cv2
 import torch
 import argparse
 import numpy as np
-from memory_profiler import profile
 from tqdm import tqdm
 from torch.nn import functional as F
 import warnings
 import _thread
 import skvideo.io
-from queue import Queue, Empty
+from queue import Queue
 from model.pytorch_msssim import ssim_matlab
 
 warnings.filterwarnings("ignore")
@@ -19,7 +18,6 @@ import time
 
 def transferAudio(sourceVideo, targetVideo):
     import shutil
-    import moviepy.editor
     tempAudioFileName = "./temp/audio.mkv"
 
     # split audio from original video file and store in "temp" directory
@@ -97,7 +95,7 @@ torch.backends.cudnn.benchmark = True
 
 
 # from train_log.RIFE_HDv3 import Model
-from train_log.RIFE_HDv3 import Model
+from model.RIFE_HDv3 import Model
 
 model = Model()
 model.load_model('train_log', -1)
