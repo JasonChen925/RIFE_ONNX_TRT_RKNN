@@ -33,3 +33,7 @@ quantized_model = torch.quantization.prepare(quantized_model)
 
 今天的坑是tensorrt并不支持INT64和double类型，只支持Int32和float
 目前解决 量化校准集的问题，好像catch到的数据不对劲
+
+2/28
+
+
