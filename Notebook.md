@@ -36,4 +36,17 @@ quantized_model = torch.quantization.prepare(quantized_model)
 
 2/28
 
+3/10
+使用trtexec分析onnx性能代码：
+trtexec --onnx=/home/jason/RIFE_ONNX_TRT_RKNN/ECCV2022-RIFE/train_log/IFNet_fp32.onnx \
+        --int8 \
+        --saveEngine=model_int8.trt \
+        --verbose \
+        --dumpProfile
 
+会生成每个层的性能分析
+
+使用trtexec 分析trt engine的性能命令：
+trtexec --loadEngine=/home/jason/RIFE_ONNX_TRT_RKNN/ECCV2022-RIFE/train_log/model_fp16_int8.trt \
+        --verbose \
+        --dumpProfile

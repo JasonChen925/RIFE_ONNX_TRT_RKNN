@@ -10,6 +10,7 @@ import _thread
 import skvideo.io
 from queue import Queue
 from model.pytorch_msssim import ssim_matlab
+import sys
 
 warnings.filterwarnings("ignore")
 import time
@@ -58,11 +59,12 @@ def transferAudio(sourceVideo, targetVideo):
 
 parser = argparse.ArgumentParser(description='Interpolation for a pair of images')
 # parser.add_argument('--video', dest='video', type=str, default=None)
-video = 'desert_2X_60fps.mp4'
+video = 'sea.mp4'
 # parser.add_argument('--output', dest='output', type=str, default=None)
 parser.add_argument('--img', dest='img', type=str, default=None)
 # parser.add_argument('--montage', dest='montage', action='store_true', help='montage origin video')
-# parser.add_argument('--model', dest='modelDir', type=str, default='train_log',
+# parser.add_argument('--model', dest='modelDir', type=
+# str, default='train_log',
 #                     help='directory with trained model files')
 # parser.add_argument('--fp16', dest='fp16', action='store_true',
 #                     help='fp16 mode for faster and more lightweight inference on cards with Tensor Cores')

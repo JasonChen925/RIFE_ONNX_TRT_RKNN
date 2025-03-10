@@ -165,37 +165,48 @@ class QuantIFNet(nn.Module):
 #         module.qconfig = get_default_qconfig("fbgemm")
 
 ###设置qconfig并插入Observer
-torch.backends.quantized.engine = "fbgemm"##适用于x86 CPU
-#创建量化模型
-quantized_model = QuantIFNet().to("cpu")  #这里为什么用CPU
-quantized_model.eval()
-##
-for name, module in quantized_model.named_modules():
-    if isinstance(module, torch.nn.ConvTranspose2d):
-        module.qconfig = None
+# torch.backends.quantized.engine = "fbgemm"##适用于x86 CPU
+# #创建量化模型
+# quantized_model = QuantIFNet().to("cpu")  #这里为什么用CPU
+# quantized_model.eval()
+# ##
+# for name, module in quantized_model.named_modules():
+#     if isinstance(module, torch.nn.ConvTranspose2d):
+#         module.qconfig = None
 
 
 
-#插入Observer
-quantized_model = torch.quantization.prepare(quantized_model)
-# 读取校准数据
-calibration_data = torch.load('/home/jason/RIFE_ONNX_TRT_RKNN/ECCV2022-RIFE/calibration_data.pt')
-
-# 运行校准
+# #插入Observer
+# quantized_model = torch.quantization.prepare(quantized_model)
+# # 读取校准数据
+# calibration_data = torch.load('/home/jason/RIFE_ONNX_TRT_RKNN/ECCV2022-RIFE/calibration_data.pt')
+#
+# # 运行校准
+# with torch.no_grad():
+#     for i in range(len(calibration_data)-1):
+#         quantized_model(calibration_data[i].unsqueeze(0).to("cpu"))
+#
+# #PyTorch 用 INT8 量化 CNN 权重,Observer 被移除,模型更小，推理更快
+# quantized_model = torch.quantization.convert(quantized_model)
+#
+# # 导出量化后的ONNX
+# dummy_input = torch.randn(1, 6, 256, 256).to("cpu")
+#
+# torch.onnx.export(quantized_model,
+#                   dummy_input,
+#                   "IFNet_quantized_torch_int8.onnx",
+#                   opset_version=16,
+#                   input_names=['imgs'],
+#                   output_names=['output'])
+# #########################以上为Pytorch静态量化部分###########################
+#################### 生成onnx模型文件#################################
+device = torch.device("cuda")
+dummy_input = torch.randn(1, 6, 256,256).to(device)  # 假设输入为 1440,2560 的图像
+model = IFNet().to(device)
 with torch.no_grad():
-    for i in range(len(calibration_data)-1):
-        quantized_model(calibration_data[i].unsqueeze(0).to("cpu"))
-
-#PyTorch 用 INT8 量化 CNN 权重,Observer 被移除,模型更小，推理更快
-quantized_model = torch.quantization.convert(quantized_model)
-
-# 导出量化后的ONNX
-dummy_input = torch.randn(1, 6, 256, 256).to("cpu")
-
-torch.onnx.export(quantized_model,
-                  dummy_input,
-                  "IFNet_quantized_torch_int8.onnx",
-                  opset_version=16,
-                  input_names=['imgs'],
-                  output_names=['output'])
-#########################以上为Pytorch静态量化部分###########################
+    torch.onnx.export(model,
+                      dummy_input,
+                      "IFNet_256x256_fp32.onnx",
+                      opset_version = 16,
+                      input_names=['imgs'],
+                      output_names=['flow_list_0','flow_list_1','flow_list_2','mask_list_2','merged_0','merged_1','merged_2'])

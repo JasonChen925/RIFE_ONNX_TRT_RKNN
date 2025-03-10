@@ -1,14 +1,16 @@
 import onnxruntime
 import torch
 import sys
+sys.path.append("..")
 import os
 from torch.optim import AdamW
-from loss import *
-
 project_root = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 sys.path.append(project_root)
-from IFNet_HDv3 import *
-from ..Using_TensorRT_Engine import TRTWrapper
+
+from .IFNet_HDv3 import *
+from .loss import *
+from Using_TensorRT_Engine import TRTWrapper
+# from ..Using_TensorRT_Engine import TRTWrapper
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     
 class Model:
@@ -21,9 +23,16 @@ class Model:
         self.sobel = SOBEL()
         # if local_rank != -1:
         #     self.flownet = DDP(self.flownet, device_ids=[local_rank], output_device=local_rank)
-        self.ort_session = onnxruntime.InferenceSession('/ECCV2022-RIFE/train_log/IFNet.onnx',
-                                                        providers=["CUDAExecutionProvider", "CPUExecutionProvider"])
-        self.tensorrt = TRTWrapper('/home/jason/RIFE_ONNX_TRT_RKNN/ECCV2022-RIFE/model.engine', None)
+
+        # self.ort_session = onnxruntime.InferenceSession('/ECCV2022-RIFE/train_log/IFNet.onnx',
+        #                                                 providers=["CUDAExecutionProvider", "CPUExecutionProvider"])
+                                                                                                                        ## 以下为2560x1440分辨率
+        # self.tensorrt = TRTWrapper(r'/home/jason/RIFE_ONNX_TRT_RKNN/ECCV2022-RIFE/train_log/model_fp16.trt', None)    ## 使用fp16的trt engine
+        # self.tensorrt = TRTWrapper(r'/home/jason/RIFE_ONNX_TRT_RKNN/ECCV2022-RIFE/model_fp32.engine',None)              ##使用fp32的trt engine
+        # self.tensorrt = TRTWrapper(r'/home/jason/RIFE_ONNX_TRT_RKNN/ECCV2022-RIFE/train_log/model_fp16_int8.trt', None) ## 使用fp16和int8混合精度
+                                                                                                                        ##
+                                                                                                                        ##以下为256x256的分辨率
+        self.tensorrt = TRTWrapper(r'/home/jason/RIFE_ONNX_TRT_RKNN/ECCV2022-RIFE/train_log/model_256x256_fp32.engine', None)
     # def initialize_session(self):
     #     session_options = onnxruntime.SessionOptions()
     #     session_options.graph_optimization_level = onnxruntime.GraphOptimizationLevel.ORT_ENABLE_EXTENDED
