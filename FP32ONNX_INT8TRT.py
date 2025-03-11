@@ -174,6 +174,6 @@ def build_engine(onnx_file_path, engine_file_path, mode=None   , calibration_dat
     return serialized_engine
 
 # 示例使用
-onnx_path = r"/home/jason/RIFE_ONNX_TRT_RKNN/ECCV2022-RIFE/train_log/IFNet_256x256_fp32.onnx"
-engine_path = r"/home/jason/RIFE_ONNX_TRT_RKNN/ECCV2022-RIFE/train_log/model_256x256_TrtInt8.trt"
-build_engine(onnx_path, engine_path, mode="INT8", calibration_data=calibration_data_vimeo)
+onnx_path = r"/home/jason/RIFE_ONNX_TRT_RKNN/ECCV2022-RIFE/train_log/IFNet_256x448_fp32.onnx"
+engine_path = r"/home/jason/RIFE_ONNX_TRT_RKNN/ECCV2022-RIFE/train_log/model_256x448_fp16.trt"
+build_engine(onnx_path, engine_path, mode="FP16", calibration_data=calibration_data_vimeo)

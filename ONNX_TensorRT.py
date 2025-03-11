@@ -28,7 +28,7 @@ network = builder.create_network(EXPLICIT_BATCH)    #创建一个TensorRT网络�
 
 parser = trt.OnnxParser(network, logger) #创建一个ONNX解析器，将ONNX模型解析为TensorRT网络
 
-onnx_model = onnx.load("//home/jason/RIFE_ONNX_TRT_RKNN/ECCV2022-RIFE/train_log/IFNet_256x256_fp32.onnx")
+onnx_model = onnx.load("//home/jason/RIFE_ONNX_TRT_RKNN/ECCV2022-RIFE/train_log/IFNet_256x448_fp32.onnx")
 device = torch.device("cuda")
 if not parser.parse(onnx_model.SerializeToString()):   #解析ONNX模型，使用.SerializeToString()序列化为字节流格式
     error_msgs = ''
@@ -42,7 +42,7 @@ config.max_workspace_size = 4<<30  # config.max_workspace_size 设置最大工�
 profile = builder.create_optimization_profile()     #builder.create_optimization_profile()：创建优化配置文件，用于动态形状推理。
 
 # profile.set_shape('imgs', [1,6,1440,2560], [1,6,1440,2560], [1,6,1440,2560])  #设置输入的最小、优化和最大形状 2560x1440使用这行代码
-profile.set_shape('imgs',[1,6,256,256],[1,6,256,256],[1,6,256,256])
+profile.set_shape('imgs',[1,6,256,448],[1,6,256,448],[1,6,256,448])
 config.add_optimization_profile(profile) #将优化配置文件添加到构建配置中去
 
 ### 构建TensorRT引擎
@@ -51,6 +51,6 @@ with torch.cuda.device(device):
 #使用builder.build_engine()根据网络定义和配置构建TensorRT引擎
 
 ### 保存引擎到文件
-with open('train_log/model_256x256_fp32.engine', mode='wb') as f:  #生成二进制文件
+with open('train_log/model_256x448_fp32.engine', mode='wb') as f:  #生成二进制文件
     f.write(bytearray(engine.serialize()))
     print("generating file done!")

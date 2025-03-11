@@ -59,7 +59,7 @@ def transferAudio(sourceVideo, targetVideo):
 
 parser = argparse.ArgumentParser(description='Interpolation for a pair of images')
 # parser.add_argument('--video', dest='video', type=str, default=None)
-video = 'sea.mp4'
+video = 'desert_2K_60fps_RIFE.mp4'
 # parser.add_argument('--output', dest='output', type=str, default=None)
 parser.add_argument('--img', dest='img', type=str, default=None)
 # parser.add_argument('--montage', dest='montage', action='store_true', help='montage origin video')

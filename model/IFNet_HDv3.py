@@ -3,7 +3,7 @@ import torch.nn as nn
 import torch.nn.functional as F
 import sys
 import os
-from warplayer import *
+from model.warplayer import *
 from torch.ao.quantization import get_default_qconfig
 
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
@@ -126,7 +126,8 @@ class IFNet(nn.Module):
             mask_list[i] = torch.sigmoid(mask_list[i])
             merged[i] = merged[i][0] * mask_list[i] + merged[i][1] * (1 - mask_list[i])
             # merged[i] = torch.clamp(merged[i] + res, 0, 1)        
-        return flow_list[0],flow_list[1],flow_list[2], mask_list[2], merged[0],merged[1],merged[2]
+        # return flow_list[0],flow_list[1],flow_list[2], mask_list[2], merged[0],merged[1],merged[2]  #onnx和tensorrt所需要
+        return flow_list,mask_list[2],merged
 
 
 
@@ -200,13 +201,13 @@ class QuantIFNet(nn.Module):
 #                   output_names=['output'])
 # #########################以上为Pytorch静态量化部分###########################
 #################### 生成onnx模型文件#################################
-device = torch.device("cuda")
-dummy_input = torch.randn(1, 6, 256,256).to(device)  # 假设输入为 1440,2560 的图像
-model = IFNet().to(device)
-with torch.no_grad():
-    torch.onnx.export(model,
-                      dummy_input,
-                      "IFNet_256x256_fp32.onnx",
-                      opset_version = 16,
-                      input_names=['imgs'],
-                      output_names=['flow_list_0','flow_list_1','flow_list_2','mask_list_2','merged_0','merged_1','merged_2'])
+# device = torch.device("cuda")
+# dummy_input = torch.randn(1, 6, 256,448).to(device)  # 假设输入为 1440,2560 的图像
+# model = IFNet().to(device)
+# with torch.no_grad():
+#     torch.onnx.export(model,
+#                       dummy_input,
+#                       "IFNet_256x448_fp32.onnx",
+#                       opset_version = 16,
+#                       input_names=['imgs'],
+#                       output_names=['flow_list_0','flow_list_1','flow_list_2','mask_list_2','merged_0','merged_1','merged_2'])
