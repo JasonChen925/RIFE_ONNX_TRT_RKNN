@@ -1,8 +1,8 @@
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
-from warplayer import warp
-from refine import *
+from model.warplayer import warp
+from model.refine import *
 
 def deconv(in_planes, out_planes, kernel_size=4, stride=2, padding=1):
     return nn.Sequential(
@@ -40,7 +40,7 @@ class IFBlock(nn.Module):
         if scale != 1:
             x = F.interpolate(x, scale_factor = 1. / scale, mode="bilinear", align_corners=False)
         if flow != None:
-            flow = F.interpolate(flow, scale_factor = 1. / scale, mode="bilinear", align_corners=False) * 1. / scale
+            flow = F.interpolate(flow, scale_factor = 1. / scale, mode="bilinear", align_corners=False) * 1. / scale  ##根据scale大小进行缩放光流
             x = torch.cat((x, flow), 1)
         x = self.conv0(x)
         x = self.convblock(x) + x
@@ -54,7 +54,7 @@ class IFNet(nn.Module):
     def __init__(self):
         super(IFNet, self).__init__()
         self.block0 = IFBlock(6, c=240)
-        self.block1 = IFBlock(13+4, c=150)
+        self.block1 = IFBlock(13+4, c=150)   ##13表示img0，img1,warped0,warped1,mask的通道数，4表示拼接进来的双向光流flow通道数，
         self.block2 = IFBlock(13+4, c=90)
         self.block_tea = IFBlock(16+4, c=90)
         self.contextnet = Contextnet()
@@ -74,18 +74,21 @@ class IFNet(nn.Module):
         stu = [self.block0, self.block1, self.block2]
         for i in range(3):
             if flow != None:
+                ##第二次循环，输入通道便多了
                 flow_d, mask_d = stu[i](torch.cat((img0, img1, warped_img0, warped_img1, mask), 1), flow, scale=scale[i])
                 flow = flow + flow_d
                 mask = mask + mask_d
             else:
-                flow, mask = stu[i](torch.cat((img0, img1), 1), None, scale=scale[i])
-            mask_list.append(torch.sigmoid(mask))
+                flow, mask = stu[i](torch.cat((img0, img1), 1), None, scale=scale[i])  #第一遍循环，scale=4,代表图像缩小四倍处理。
+            mask_list.append(torch.sigmoid(mask))  #mask的值代表插值结果更接近哪一张图，是一个融合系数
             flow_list.append(flow)
-            warped_img0 = warp(img0, flow[:, :2])
+            warped_img0 = warp(img0, flow[:, :2])  #进行warp
             warped_img1 = warp(img1, flow[:, 2:4])
+            #拼接好warp过后的图片merged_student,保存下来
             merged_student = (warped_img0, warped_img1)
             merged.append(merged_student)
-        if gt.shape[1] == 3:
+
+        if gt.shape[1] == 3:#蒸馏细节
             flow_d, mask_d = self.block_tea(torch.cat((img0, img1, warped_img0, warped_img1, mask, gt), 1), flow, scale=1)
             flow_teacher = flow + flow_d
             warped_img0_teacher = warp(img0, flow_teacher[:, :2])
@@ -95,14 +98,22 @@ class IFNet(nn.Module):
         else:
             flow_teacher = None
             merged_teacher = None
+
         for i in range(3):
             merged[i] = merged[i][0] * mask_list[i] + merged[i][1] * (1 - mask_list[i])
+
             if gt.shape[1] == 3:
                 loss_mask = ((merged[i] - gt).abs().mean(1, True) > (merged_teacher - gt).abs().mean(1, True) + 0.01).float().detach()
                 loss_distill += (((flow_teacher.detach() - flow_list[i]) ** 2).mean(1, True) ** 0.5 * loss_mask).mean()
-        c0 = self.contextnet(img0, flow[:, :2])
+
+        c0 = self.contextnet(img0, flow[:, :2])     ## contextnet提取上下文特征增强
         c1 = self.contextnet(img1, flow[:, 2:4])
-        tmp = self.unet(img0, img1, warped_img0, warped_img1, mask, flow, c0, c1)
+
+        tmp = self.unet(img0, img1, warped_img0, warped_img1, mask, flow, c0, c1)   #unet输出的是residual图像
+
         res = tmp[:, :3] * 2 - 1
-        merged[2] = torch.clamp(merged[2] + res, 0, 1)
+
+        merged[2] = torch.clamp(merged[2] + res, 0, 1)      ##merged[2]是最后一次插帧图像，加上residual后再clamp到[0,1]作为最终插值结果
+        #torch.clamp()是张量裁剪操作，作用是，将张量中的每个值限定在指定的区间[min,max]内，小于min,压为min，大于max，压为max，min到max区间的值不变。
+
         return flow_list, mask_list[2], merged, flow_teacher, merged_teacher, loss_distill
