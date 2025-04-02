@@ -70,10 +70,12 @@ class Unet(nn.Module):
         self.conv = nn.Conv2d(c, 3, 3, 1, 1)
 
     def forward(self, img0, img1, warped_img0, warped_img1, mask, flow, c0, c1):
-        s0 = self.down0(torch.cat((img0, img1, warped_img0, warped_img1, mask, flow), 1))
+        s0 = self.down0(torch.cat((img0, img1, warped_img0, warped_img1, mask, flow), 1))#下采样时提取语义信息
         s1 = self.down1(torch.cat((s0, c0[0], c1[0]), 1))
         s2 = self.down2(torch.cat((s1, c0[1], c1[1]), 1))
         s3 = self.down3(torch.cat((s2, c0[2], c1[2]), 1))
+        #上采样时结合contextnet提供的多尺度特征和encode时缓存的特征。
+        # 输出为3通道图像RGB,通过sigmoid限制在[0,1],作为residal精细补偿帧
         x = self.up0(torch.cat((s3, c0[3], c1[3]), 1))
         x = self.up1(torch.cat((x, s2), 1)) 
         x = self.up2(torch.cat((x, s1), 1)) 
