@@ -7,7 +7,7 @@ import itertools
 from model.warplayer import warp
 from torch.nn.parallel import DistributedDataParallel as DDP
 from model.IFNet import *
-from model.IFNet_m import *
+# from model.IFNet_m import *
 import torch.nn.functional as F
 from model.loss import *
 from model.laplacian import *
@@ -26,6 +26,15 @@ class Model:
         self.epe = EPE()
         self.lap = LapLoss()
         self.sobel = SOBEL()
+                                                                                                                        ## 以下为2560x1440分辨率
+        # self.tensorrt = TRTWrapper(r'/home/jason/RIFE_ONNX_TRT_RKNN/ECCV2022-RIFE/train_log_origin/model_1440x2560_fp16.trt', None)    ## 使用fp16的trt engine
+        # self.tensorrt = TRTWrapper(r'/home/jason/RIFE_ONNX_TRT_RKNN/ECCV2022-RIFE/train_log_origin/model_1440x2560_fp32.trt',None)              ##使用fp32的trt engine
+        # self.tensorrt = TRTWrapper(r'/home/jason/RIFE_ONNX_TRT_RKNN/ECCV2022-RIFE/train_log_HDv3/model_fp16_int8.trt', None) ## 使用fp16和int8混合精度
+                                                                                                                        ##
+                                                                                                                        ##以下为256x256的分辨率
+        # self.tensorrt = TRTWrapper(r'/home/jason/RIFE_ONNX_TRT_RKNN/ECCV2022-RIFE/train_log_HDv3/model_256x448_fp32.trt', None) ## 使用fp32的trt engine
+        # self.tensorrt = TRTWrapper(r'/home/jason/RIFE_ONNX_TRT_RKNN/ECCV2022-RIFE/train_log_HDv3/model_256x448_fp16.trt', None)  ## 使用fp16的trt engine
+        # self.tensorrt = TRTWrapper(r'/home/jason/RIFE_ONNX_TRT_RKNN/ECCV2022-RIFE/train_log_HDv3/model_256x448_TrtInt8.trt', None)  ## 使用int8的trt engine
         if local_rank != -1:
             self.flownet = DDP(self.flownet, device_ids=[local_rank], output_device=local_rank)
 
@@ -43,26 +52,38 @@ class Model:
             return {
             k.replace("module.", ""): v
                 for k, v in param.items()
-                if "module." in k
+                # if "module." in k
             }
             
         if rank <= 0:
-            self.flownet.load_state_dict(convert(torch.load('{}/flownet.pkl'.format(path))))
+            self.flownet.load_state_dict(convert(torch.load('{}/flownet_unetchange.pkl'.format(path))))
         
     def save_model(self, path, rank=0):
         if rank == 0:
-            torch.save(self.flownet.state_dict(),'{}/flownet.pkl'.format(path))
+            torch.save(self.flownet.state_dict(),'{}/flownet_unetchange.pkl'.format(path))
 
-    def inference(self, img0, img1, scale=1, scale_list=[4, 2, 1], TTA=False, timestep=0.5):
-        for i in range(3):
-            scale_list[i] = scale_list[i] * 1.0 / scale
-        imgs = torch.cat((img0, img1), 1)
-        flow, mask, merged, flow_teacher, merged_teacher, loss_distill = self.flownet(imgs, scale_list, timestep=timestep)
-        if TTA == False:
-            return merged[2]
-        else:
-            flow2, mask2, merged2, flow_teacher2, merged_teacher2, loss_distill2 = self.flownet(imgs.flip(2).flip(3), scale_list, timestep=timestep)
-            return (merged[2] + merged2[2].flip(2).flip(3)) / 2
+    # def inference(self, img0, img1, scale=1, scale_list=[4, 2, 1], TTA=False, timestep=0.5): #训练的时候使用
+    #     for i in range(3):
+    #         scale_list[i] = scale_list[i] * 1.0 / scale
+    #     imgs = torch.cat((img0, img1), 1)
+    #     flow, mask, merged, flow_teacher, merged_teacher, loss_distill = self.flownet(imgs, scale_list, timestep=timestep)
+    #     if TTA == False:###TTA属于是使用输入图像的水平翻转 + 垂直翻转（即上下 + 左右翻转）进行第二次推理：
+    #         return merged[2]
+    #     else:
+    #         flow2, mask2, merged2, flow_teacher2, merged_teacher2, loss_distill2 = self.flownet(imgs.flip(2).flip(3), scale_list, timestep=timestep)
+    #         return (merged[2] + merged2[2].flip(2).flip(3)) / 2
+
+    # def inference(self,img0,img1,scale=1,scale_list=[4,2,1],timestep=0.5):  ##推理的时候使用
+    #     imgs = torch.cat((img0, img1), 1)
+    #     flow, mask, merged, flow_teacher, merged_teacher, loss_distill = self.flownet(imgs, scale_list, timestep=timestep)
+    #     return merged[2]
+    def inference(self,img0,img1,scale=1.0):
+        imgs = torch.cat((img0,img1),1)
+        output = self.tensorrt(dict(imgs=imgs.cuda()))
+        # flow  = output['flow_list_0','flow_list_1',"flow_list_2"]
+        # mask = output['mask_list_2']
+        merged = output['merged_2']
+        return merged
     
     def update(self, imgs, gt, learning_rate=0, mul=1, training=True, flow_gt=None):
         for param_group in self.optimG.param_groups:

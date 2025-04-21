@@ -1,8 +1,10 @@
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
-from model.warplayer import warp
-from model.refine import *
+# from warplayer import warp #生成onnx用
+from model.warplayer import warp   #插帧用 训练用
+# from refine import * #生成onnx用
+from model.refine import *#插帧用 训练用
 
 def deconv(in_planes, out_planes, kernel_size=4, stride=2, padding=1):
     return nn.Sequential(
@@ -36,9 +38,12 @@ class IFBlock(nn.Module):
         )
         self.lastconv = nn.ConvTranspose2d(c, 5, 4, 2, 1)
 
-    def forward(self, x, flow, scale):
+    def forward(self, x, flow, scale=1):
+        scale = float(scale)
+
         if scale != 1:
             x = F.interpolate(x, scale_factor = 1. / scale, mode="bilinear", align_corners=False)
+
         if flow != None:
             flow = F.interpolate(flow, scale_factor = 1. / scale, mode="bilinear", align_corners=False) * 1. / scale  ##根据scale大小进行缩放光流
             x = torch.cat((x, flow), 1)
@@ -53,9 +58,9 @@ class IFBlock(nn.Module):
 class IFNet(nn.Module):
     def __init__(self):
         super(IFNet, self).__init__()
-        self.block0 = IFBlock(6, c=240)
-        self.block1 = IFBlock(13+4, c=150)   ##13表示img0，img1,warped0,warped1,mask的通道数，4表示拼接进来的双向光流flow通道数，
-        self.block2 = IFBlock(13+4, c=90)
+        self.block0 = IFBlock(6, c=120)
+        self.block1 = IFBlock(13+4, c=75)   ##13表示img0，img1,warped0,warped1,mask的通道数，4表示拼接进来的双向光流flow通道数，
+        self.block2 = IFBlock(13+4, c=45)
         self.block_tea = IFBlock(16+4, c=90)
         self.contextnet = Contextnet()
         self.unet = Unet()
@@ -117,3 +122,16 @@ class IFNet(nn.Module):
         #torch.clamp()是张量裁剪操作，作用是，将张量中的每个值限定在指定的区间[min,max]内，小于min,压为min，大于max，压为max，min到max区间的值不变。
 
         return flow_list, mask_list[2], merged, flow_teacher, merged_teacher, loss_distill
+        # #flow_teacher和merged和loss_distill应该是训练过程中才有的东西，推理过程中没有
+        # return flow_list,mask_list[2],merged
+#
+# device = torch.device("cuda")
+# dummy_input = torch.randn(1, 6, 1440,2560).to(device)  # 假设输入为 1440,2560 的图像
+# model = IFNet().to(device)
+# with torch.no_grad():
+#     torch.onnx.export(model,
+#                       dummy_input,
+#                       "IFNet_o_fp32.onnx",
+#                       opset_version = 16,
+#                       input_names=['imgs'],
+#                       output_names=['flow_list_0','flow_list_1','flow_list_2','mask_list_2','merged_0','merged_1','merged_2'])

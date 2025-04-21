@@ -16,7 +16,7 @@ from torch.utils.data.distributed import DistributedSampler
 
 device = torch.device("cuda")
 
-log_path = 'train_log'
+log_path = 'train_log_HDv3'
 
 def get_learning_rate(step):
     if step < 2000:

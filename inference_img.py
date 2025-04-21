@@ -10,7 +10,7 @@ device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 # 加载模型
 from model.RIFE_HDv3 import Model
 model = Model()
-model.load_model('train_log', -1)
+model.load_model('train_log_HDv3', -1)
 model.eval()
 model.device()
 
@@ -79,4 +79,4 @@ if not os.path.exists('output'):
     os.mkdir('output')
 
 for i in range(len(img_list)):
-    cv2.imwrite('output/img{}.png'.format(i), (img_list[i][0] * 255).byte().cpu().numpy().transpose(1, 2, 0)[:h, :w])
+    cv2.imwrite('output/img_fp32_{}.png'.format(i), (img_list[i][0] * 255).byte().cpu().numpy().transpose(1, 2, 0)[:h, :w])

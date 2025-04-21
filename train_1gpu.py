@@ -10,6 +10,7 @@ import numpy as np
 import random
 import argparse
 
+# from model.RIFE_HDv3_origin import Model
 from model.RIFE import Model
 from dataset import *
 from torch.utils.data import DataLoader, Dataset
@@ -19,7 +20,7 @@ from torch.utils.data.distributed import DistributedSampler
 
 device = torch.device("cuda")
 
-log_path = r'/home/jason/RIFE_ONNX_TRT_RKNN/ECCV2022-RIFE/train_log'
+log_path = r'/home/jason/RIFE_ONNX_TRT_RKNN/ECCV2022-RIFE/train_log_origin'#原版rife训练
 
 def get_learning_rate(step):
     if step < 2000:
@@ -130,7 +131,7 @@ def evaluate(model,val_data,nr_eval,writer_val):
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument('--epoch',default =10,type=int)
-    parser.add_argument('--batch_size',default=32,type=int,help='minibatch size')
+    parser.add_argument('--batch_size',default=64,type=int,help='minibatch size')
     parser.add_argument('--local_rank',default=0,type= int,help='local rank')
     torch.cuda.set_device(0)
     args = parser.parse_args()

@@ -59,12 +59,12 @@ def transferAudio(sourceVideo, targetVideo):
 
 parser = argparse.ArgumentParser(description='Interpolation for a pair of images')
 # parser.add_argument('--video', dest='video', type=str, default=None)
-video = 'desert_2K_60fps_RIFE.mp4'
+video = 'desert_30fps_origin.mp4'
 # parser.add_argument('--output', dest='output', type=str, default=None)
 parser.add_argument('--img', dest='img', type=str, default=None)
 # parser.add_argument('--montage', dest='montage', action='store_true', help='montage origin video')
 # parser.add_argument('--model', dest='modelDir', type=
-# str, default='train_log',
+# str, default='train_log_HDv3',
 #                     help='directory with trained model files')
 # parser.add_argument('--fp16', dest='fp16', action='store_true',
 #                     help='fp16 mode for faster and more lightweight inference on cards with Tensor Cores')
@@ -96,15 +96,18 @@ torch.backends.cudnn.benchmark = True
     #     torch.set_default_tensor_type(torch.cuda.HalfTensor)
 
 
-# from train_log.RIFE_HDv3 import Model
-from model.RIFE_HDv3 import Model
-
+# from model.RIFE_HDv3 import Model  #使用的是RIFE_HDv3版本
+# model = Model()
+# model.load_model('train_log_HDv3', -1)
+# print("Loaded v3.x HD model.")
+# model.eval()
+# model.device()
+from model.RIFE import Model        #使用原版
 model = Model()
-model.load_model('train_log', -1)
-print("Loaded v3.x HD model.")
+model.load_model('train_log_origin',-1)
+print("Loaded RIFE_origin model.")
 model.eval()
 model.device()
-
 
 
 videoCapture = cv2.VideoCapture(video)

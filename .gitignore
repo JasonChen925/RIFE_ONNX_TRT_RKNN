@@ -4,7 +4,7 @@
 
 *.pkl
 output/*
-train_log/*
+train_log_HDv3/*
 *.mp4
 
 test/

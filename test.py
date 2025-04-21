@@ -1,7 +1,7 @@
 import onnx
 import numpy as np
 
-onnx_model = onnx.load("/home/jason/RIFE_ONNX_TRT_RKNN/ECCV2022-RIFE/train_log/IFNet_fp32.onnx")
+onnx_model = onnx.load("/ECCV2022-RIFE/train_log_HDv3/IFNet_fp32.onnx")
 
 # 遍历所有 initializer 并转换数据类型
 for tensor in onnx_model.graph.initializer:

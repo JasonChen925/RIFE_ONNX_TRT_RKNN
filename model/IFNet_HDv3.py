@@ -3,7 +3,8 @@ import torch.nn as nn
 import torch.nn.functional as F
 import sys
 import os
-from model.warplayer import *
+from model.warplayer import * ## 插帧用
+# from warplayer import *  #生成onnx模型用
 from torch.ao.quantization import get_default_qconfig
 
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
@@ -145,18 +146,18 @@ class IFNet(nn.Module):
 
 
 ###########################pytorch静态量化部分######################33
-class QuantIFNet(nn.Module):
-    def __init__(self):
-        super(QuantIFNet, self).__init__()
-        self.quant = torch.quantization.QuantStub()  # 量化输入
-        self.model = IFNet()  # 原始光流插帧模型
-        self.dequant = torch.quantization.DeQuantStub()  # 反量化输出
-
-    def forward(self, x):
-        x = self.quant(x)  # 量化输入
-        x = self.model(x)  # 插帧处理
-        x = self.dequant(x)  # 反量化输出
-        return x
+# class QuantIFNet(nn.Module):
+#     def __init__(self):
+#         super(QuantIFNet, self).__init__()
+#         self.quant = torch.quantization.QuantStub()  # 量化输入
+#         self.model = IFNet()  # 原始光流插帧模型
+#         self.dequant = torch.quantization.DeQuantStub()  # 反量化输出
+#
+#     def forward(self, x):
+#         x = self.quant(x)  # 量化输入
+#         x = self.model(x)  # 插帧处理
+#         x = self.dequant(x)  # 反量化输出
+#         return x
 
 ######## 量化设置（跳过 ConvTranspose2d）
 # def apply_qconfig(module):

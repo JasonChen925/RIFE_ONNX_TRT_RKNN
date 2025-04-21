@@ -2,7 +2,7 @@ import torch
 import onnx
 
 ########################判断.pkl文件是否为fp32或者fp16格式
-# model_dict = torch.load(r"/home/jason/RIFE_ONNX_TRT_RKNN/ECCV2022-RIFE/train_log/flownet.pkl", map_location="cpu")
+# model_dict = torch.load(r"/home/jason/RIFE_ONNX_TRT_RKNN/ECCV2022-RIFE/train_log_HDv3/flownet.pkl", map_location="cpu")
 # # 如果 'state_dict' 在 keys 里，则提取权重，否则直接使用 model_dict
 # state_dict = model_dict["state_dict"] if "state_dict" in model_dict else model_dict
 # # 遍历所有参数，检查数据类型
@@ -19,7 +19,7 @@ import onnx
 import numpy as np
 
 # 加载 ONNX 模型
-onnx_model = onnx.load(r"/home/jason/RIFE_ONNX_TRT_RKNN/ECCV2022-RIFE/train_log/IFNet_quantized_torch_int8.onnx")
+onnx_model = onnx.load(r"/ECCV2022-RIFE/train_log_HDv3/IFNet_quantized_torch_int8.onnx")
 
 # 遍历所有节点，检查权重数据类型
 for initializer in onnx_model.graph.initializer:

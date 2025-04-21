@@ -24,21 +24,21 @@ class Model:
         # if local_rank != -1:
         #     self.flownet = DDP(self.flownet, device_ids=[local_rank], output_device=local_rank)
 
-        # self.ort_session = onnxruntime.InferenceSession('/ECCV2022-RIFE/train_log/IFNet.onnx',
+        # self.ort_session = onnxruntime.InferenceSession('/ECCV2022-RIFE/train_log_HDv3/IFNet.onnx',
         #                                                 providers=["CUDAExecutionProvider", "CPUExecutionProvider"])
                                                                                                                         ## 以下为2560x1440分辨率
-        # self.tensorrt = TRTWrapper(r'/home/jason/RIFE_ONNX_TRT_RKNN/ECCV2022-RIFE/train_log/model_fp16.trt', None)    ## 使用fp16的trt engine
+        # self.tensorrt = TRTWrapper(r'/home/jason/RIFE_ONNX_TRT_RKNN/ECCV2022-RIFE/train_log_HDv3/model_fp16.trt', None)    ## 使用fp16的trt engine
         # self.tensorrt = TRTWrapper(r'/home/jason/RIFE_ONNX_TRT_RKNN/ECCV2022-RIFE/model_fp32.engine',None)              ##使用fp32的trt engine
-        # self.tensorrt = TRTWrapper(r'/home/jason/RIFE_ONNX_TRT_RKNN/ECCV2022-RIFE/train_log/model_fp16_int8.trt', None) ## 使用fp16和int8混合精度
+        # self.tensorrt = TRTWrapper(r'/home/jason/RIFE_ONNX_TRT_RKNN/ECCV2022-RIFE/train_log_HDv3/model_fp16_int8.trt', None) ## 使用fp16和int8混合精度
                                                                                                                         ##
                                                                                                                         ##以下为256x256的分辨率
-        # self.tensorrt = TRTWrapper(r'/home/jason/RIFE_ONNX_TRT_RKNN/ECCV2022-RIFE/train_log/model_256x448_fp32.engine', None) ## 使用fp32的trt engine
-        # self.tensorrt = TRTWrapper(r'/home/jason/RIFE_ONNX_TRT_RKNN/ECCV2022-RIFE/train_log/model_256x448_fp16.trt', None)  ## 使用fp16的trt engine
-        self.tensorrt = TRTWrapper(r'/home/jason/RIFE_ONNX_TRT_RKNN/ECCV2022-RIFE/train_log/model_256x448_TrtInt8.trt', None)  ## 使用int8的trt engine
+        self.tensorrt = TRTWrapper(r'/home/jason/RIFE_ONNX_TRT_RKNN/ECCV2022-RIFE/train_log_HDv3/model_256x448_fp32.trt', None) ## 使用fp32的trt engine
+        # self.tensorrt = TRTWrapper(r'/home/jason/RIFE_ONNX_TRT_RKNN/ECCV2022-RIFE/train_log_HDv3/model_256x448_fp16.trt', None)  ## 使用fp16的trt engine
+        # self.tensorrt = TRTWrapper(r'/home/jason/RIFE_ONNX_TRT_RKNN/ECCV2022-RIFE/train_log_HDv3/model_256x448_TrtInt8.trt', None)  ## 使用int8的trt engine
     # def initialize_session(self):
     #     session_options = onnxruntime.SessionOptions()
     #     session_options.graph_optimization_level = onnxruntime.GraphOptimizationLevel.ORT_ENABLE_EXTENDED
-    #     ort_session = onnxruntime.InferenceSession('/home/jason/RIFE_ONNX_TRT_RKNN/ECCV2022-RIFE/train_log/IFNet.onnx',
+    #     ort_session = onnxruntime.InferenceSession('/home/jason/RIFE_ONNX_TRT_RKNN/ECCV2022-RIFE/train_log_HDv3/IFNet.onnx',
     #                                                 session_options=session_options,
     #                                                 providers=["CUDAExecutionProvider"])
     #     return ort_session
@@ -54,10 +54,14 @@ class Model:
     def load_model(self, path, rank=0):
         def convert(param):
             if rank == -1:
+                # return {
+                #     k.replace("module.", ""): v
+                #     for k, v in param.items()
+                #     if "module." in k
+                # }
                 return {
-                    k.replace("module.", ""): v
+                    k.replace('module.', ''): v
                     for k, v in param.items()
-                    if "module." in k
                 }
             else:
                 return param
@@ -70,11 +74,11 @@ class Model:
     def save_model(self, path, rank=0):
         if rank == 0:
             torch.save(self.flownet.state_dict(),'{}/flownet.pkl'.format(path))
-#######################################################原版
-    def inference(self, img0, img1, scale=1.0):  #原版
-        imgs = torch.cat((img0, img1), 1)
-        flow, mask, merged = self.flownet(imgs)
-        return merged[2]
+# #######################################################原版
+#     def inference(self, img0, img1, scale=1.0):  #原版
+#         imgs = torch.cat((img0, img1), 1)
+#         flow, mask, merged = self.flownet(imgs)
+#         return merged[2]
 
     ###################################################### ONNX版，效果并不理想
     # def inference(self,img0,img1,scale=1.0,):
@@ -97,13 +101,13 @@ class Model:
     #     # print(f"merged shape: {np.array(merged).shape}")
     #     return merged[2]
 ######################################Tensorrt加速
-    # def inference(self,img0,img1,scale=1.0):
-    #     imgs = torch.cat((img0,img1),1)
-    #     output = self.tensorrt(dict(imgs=imgs.cuda()))
-    #     # flow  = output['flow_list_0','flow_list_1',"flow_list_2"]
-    #     # mask = output['mask_list_2']
-    #     merged = output['merged_2']
-    #     return merged
+    def inference(self,img0,img1,scale=1.0):
+        imgs = torch.cat((img0,img1),1)
+        output = self.tensorrt(dict(imgs=imgs.cuda()))
+        # flow  = output['flow_list_0','flow_list_1',"flow_list_2"]
+        # mask = output['mask_list_2']
+        merged = output['merged_2']
+        return merged
 
     def update(self, imgs, gt, learning_rate=0, mul=1, training=True, flow_gt=None):
         for param_group in self.optimG.param_groups:
