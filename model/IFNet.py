@@ -5,6 +5,20 @@ import torch.nn.functional as F
 from model.warplayer import warp   #插帧用 训练用
 # from refine import * #生成onnx用
 from model.refine import *#插帧用 训练用
+#
+#######DWConv修改
+# class DWConv(nn.Module):
+#     def __init__(self, in_channels, out_channels, stride=1):
+#         super(DWConv, self).__init__()
+#         self.depthwise = nn.Conv2d(in_channels, in_channels, kernel_size=3, stride=stride, padding=1, groups=in_channels, bias=True)
+#         self.pointwise = nn.Conv2d(in_channels, out_channels, kernel_size=1, stride=1, padding=0, bias=True)
+#         self.prelu = nn.PReLU(out_channels)
+#
+#     def forward(self, x):
+#         x = self.depthwise(x)
+#         x = self.pointwise(x)
+#         x = self.prelu(x)
+#         return x
 
 def deconv(in_planes, out_planes, kernel_size=4, stride=2, padding=1):
     return nn.Sequential(
@@ -13,11 +27,13 @@ def deconv(in_planes, out_planes, kernel_size=4, stride=2, padding=1):
     )
 
 def conv(in_planes, out_planes, kernel_size=3, stride=1, padding=1, dilation=1):
+    #原版模型
     return nn.Sequential(
         nn.Conv2d(in_planes, out_planes, kernel_size=kernel_size, stride=stride,
                   padding=padding, dilation=dilation, bias=True),
         nn.PReLU(out_planes)
     )
+    # return DWConv(in_planes, out_planes, stride=stride)#######DWConv修改
 
 class IFBlock(nn.Module):
     def __init__(self, in_planes, c=64):
@@ -58,9 +74,9 @@ class IFBlock(nn.Module):
 class IFNet(nn.Module):
     def __init__(self):
         super(IFNet, self).__init__()
-        self.block0 = IFBlock(6, c=120)
-        self.block1 = IFBlock(13+4, c=75)   ##13表示img0，img1,warped0,warped1,mask的通道数，4表示拼接进来的双向光流flow通道数，
-        self.block2 = IFBlock(13+4, c=45)
+        self.block0 = IFBlock(6, c=240)
+        self.block1 = IFBlock(13+4, c=150) #13表示img0，img1,warped0,warped1,mask的通道数，4表示拼接进来的双向光流flow通道数，
+        self.block2 = IFBlock(13+4, c=90)
         self.block_tea = IFBlock(16+4, c=90)
         self.contextnet = Contextnet()
         self.unet = Unet()

@@ -88,7 +88,8 @@ def train(model):
             print('epoch:{} {}/{} time:{:.2f} loss_l1:{}'.format(epoch,i,args.step_per_epoch,data_time_interval,train_time_interval,info['loss_l1']))
             step += 1
         nr_eval +=1
-        model.save_model(log_path)
+        model.save_model(log_path)  ###保存的模型权重文件名称
+
 
 def evaluate(model,val_data,nr_eval,writer_val):
     loss_l1_list = []
@@ -130,7 +131,7 @@ def evaluate(model,val_data,nr_eval,writer_val):
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
-    parser.add_argument('--epoch',default =10,type=int)
+    parser.add_argument('--epoch',default =20,type=int)
     parser.add_argument('--batch_size',default=64,type=int,help='minibatch size')
     parser.add_argument('--local_rank',default=0,type= int,help='local rank')
     torch.cuda.set_device(0)
