@@ -7,10 +7,13 @@ import itertools
 from model.warplayer import warp
 from torch.nn.parallel import DistributedDataParallel as DDP
 # from model.IFNet import *   ##IFNet网络结构
-# from model.IFNet_ReParam import *  ##IFNet_ReParam结构
+
 # from model.IFNet_UIB import *   ##UIB结构
-from model.IFNet_GhostNet import *
+# from model.IFNet_GhostNet import *
+# from model.IFNet_ReParam import *  ##IFNet_ReParam结构
+from model.IFNet_InvertedResidualBlock import *
 # from model.IFNet_m import *
+
 import torch.nn.functional as F
 from model.loss import *
 from model.laplacian import *
@@ -59,11 +62,11 @@ class Model:
             }
             
         if rank <= 0:
-            self.flownet.load_state_dict(convert(torch.load('{}/flownet_Ghost.pkl'.format(path))))
+            self.flownet.load_state_dict(convert(torch.load('{}/flownet_InvertedRB.pkl'.format(path))))
         
     def save_model(self, path, rank=0):
         if rank == 0:
-            torch.save(self.flownet.state_dict(),'{}/flownet_Ghost.pkl'.format(path))
+            torch.save(self.flownet.state_dict(),'{}/flownet_InvertedRB.pkl'.format(path))
 
     # def inference(self, img0, img1, scale=1, scale_list=[4, 2, 1], TTA=False, timestep=0.5): #训练的时候使用
     #     for i in range(3):

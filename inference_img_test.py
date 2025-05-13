@@ -58,38 +58,6 @@ print("插帧用时为: {:.4f} 秒".format(Time_End - Time_Start))
 
 output_folder = r"/home/jason/RIFE_ONNX_TRT_RKNN/ECCV2022-RIFE/test/images/"
 for i in range(len(img_list)):
-    save_path = os.path.join(output_folder, f"img_output{i}.png")
+    save_path = os.path.join(output_folder, f"img_output.png")
     cv2.imwrite(save_path, (img_list[i][0] * 255).byte().cpu().numpy().transpose(1, 2, 0)[:h, :w])
 
-    #####计算PSNR和SSIM
-
-# 读取 Ground Truth 中间帧
-gt_path = os.path.join(output_folder, "im2_origin.png")
-gt = cv2.imread(gt_path, cv2.IMREAD_UNCHANGED)
-
-# 读取生成的插帧中间帧
-pred_path = os.path.join(output_folder, "img_output1.png")  # 注意改成 output1
-pred = cv2.imread(pred_path, cv2.IMREAD_UNCHANGED)
-
-# 转为 float32
-gt = gt.astype(np.float32) / 255.
-pred = pred.astype(np.float32) / 255.
-
-# 对齐尺寸（如果尺寸有微小不同，裁剪处理）
-h_, w_, _ = gt.shape
-pred = pred[:h_, :w_, :]
-
-# 计算 PSNR
-mse = np.mean((gt - pred) ** 2)
-if mse == 0:
-    psnr = 100
-else:
-    psnr = 10 * np.log10(1.0 / mse)
-
-# 计算 SSIM
-import skimage.metrics
-
-ssim = skimage.metrics.structural_similarity(gt, pred, channel_axis=-1, data_range=1.0)
-
-
-print(f"插帧结果与 im2_origin.png 对比：PSNR={psnr:.4f} dB, SSIM={ssim:.4f}")

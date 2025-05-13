@@ -5,7 +5,7 @@ from skimage.metrics import structural_similarity as ssim
 import glob
 
 # 指定图片所在的目录
-image_dir = "/home/jason/RIFE_ONNX_TRT_RKNN/ECCV2022-RIFE/output/TrtEngine"
+image_dir = "/home/jason/RIFE_ONNX_TRT_RKNN/ECCV2022-RIFE/test/images"
 
 # 获取所有图片文件
 image_paths = sorted(glob.glob(os.path.join(image_dir, "*.png")))  # 仅获取 PNG 文件
@@ -13,7 +13,7 @@ if len(image_paths) < 5:
     raise ValueError("文件夹中图片数量不足 5 张，请检查路径！")
 
 # 指定基准图片（确保它在文件夹内）
-ref_img_path = os.path.join(image_dir, "img1_origin.png")
+ref_img_path = os.path.join(image_dir, "im2_origin.png")
 if not os.path.exists(ref_img_path):
     raise FileNotFoundError(f"基准图片 {ref_img_path} 不存在，请检查文件夹内容！")
 

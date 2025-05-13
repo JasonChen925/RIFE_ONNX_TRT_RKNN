@@ -6,7 +6,7 @@ from model.warplayer import warp   #插帧用 训练用
 # from refine import * #生成onnx用
 from model.refine import *#插帧用 训练用
 #
-#######DWConv修改
+#####DWConv修改
 # class DWConv(nn.Module):
 #     def __init__(self, in_channels, out_channels, stride=1):
 #         super(DWConv, self).__init__()
@@ -27,7 +27,7 @@ def deconv(in_planes, out_planes, kernel_size=4, stride=2, padding=1):
     )
 
 def conv(in_planes, out_planes, kernel_size=3, stride=1, padding=1, dilation=1):
-    #原版模型
+    # 原版模型
     return nn.Sequential(
         nn.Conv2d(in_planes, out_planes, kernel_size=kernel_size, stride=stride,
                   padding=padding, dilation=dilation, bias=True),
@@ -58,7 +58,7 @@ class IFBlock(nn.Module):
         scale = float(scale)
 
         if scale != 1:
-            x = F.interpolate(x, scale_factor = 1. / scale, mode="bilinear", align_corners=False)
+            x = F.interpolate(x, scale_factor =   1. / scale, mode="bilinear", align_corners=False)
 
         if flow != None:
             flow = F.interpolate(flow, scale_factor = 1. / scale, mode="bilinear", align_corners=False) * 1. / scale  ##根据scale大小进行缩放光流
@@ -74,7 +74,7 @@ class IFBlock(nn.Module):
 class IFNet(nn.Module):
     def __init__(self):
         super(IFNet, self).__init__()
-        self.block0 = IFBlock(6, c=240)
+        self.block0 = IFBlock(6, c=240)     ##240,150,90
         self.block1 = IFBlock(13+4, c=150) #13表示img0，img1,warped0,warped1,mask的通道数，4表示拼接进来的双向光流flow通道数，
         self.block2 = IFBlock(13+4, c=90)
         self.block_tea = IFBlock(16+4, c=90)

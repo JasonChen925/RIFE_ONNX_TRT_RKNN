@@ -8,9 +8,9 @@ from torch.nn import functional as F
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
 # 加载模型
-from model.RIFE_HDv3 import Model
+from model.RIFE import Model
 model = Model()
-model.load_model('train_log_HDv3', -1)
+model.load_model('train_log_origin', -1)
 model.eval()
 model.device()
 
@@ -75,8 +75,6 @@ print("插帧用时为: {:.4f} 秒".format(Time_End - Time_Start))
 print("最终显存占用: {:.2f} MB, 最终 CPU 内存占用: {:.2f} MB".format(
     torch.cuda.memory_allocated() / 1024 ** 2, get_memory_usage()))
 
-if not os.path.exists('output'):
-    os.mkdir('output')
 
 for i in range(len(img_list)):
-    cv2.imwrite('output/img_fp32_{}.png'.format(i), (img_list[i][0] * 255).byte().cpu().numpy().transpose(1, 2, 0)[:h, :w])
+    cv2.imwrite('test/images/img_ReParam{}.png'.format(i), (img_list[i][0] * 255).byte().cpu().numpy().transpose(1, 2, 0)[:h, :w])
