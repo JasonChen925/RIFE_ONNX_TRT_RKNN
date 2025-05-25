@@ -1,24 +1,11 @@
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
-# from warplayer import warp #生成onnx用
-from model.warplayer import warp   #插帧用 训练用
-# from refine import * #生成onnx用
-from model.refine import *#插帧用 训练用
-#
-#####DWConv修改
-# class DWConv(nn.Module):
-#     def __init__(self, in_channels, out_channels, stride=1):
-#         super(DWConv, self).__init__()
-#         self.depthwise = nn.Conv2d(in_channels, in_channels, kernel_size=3, stride=stride, padding=1, groups=in_channels, bias=True)
-#         self.pointwise = nn.Conv2d(in_channels, out_channels, kernel_size=1, stride=1, padding=0, bias=True)
-#         self.prelu = nn.PReLU(out_channels)
-#
-#     def forward(self, x):
-#         x = self.depthwise(x)
-#         x = self.pointwise(x)
-#         x = self.prelu(x)
-#         return x
+from warplayer import warp #生成onnx用,计算参数量用
+# from model.warplayer import warp   #插帧用 训练用
+from refine import * #生成onnx用
+# from model.refine import *#插帧用 训练用
+
 
 def deconv(in_planes, out_planes, kernel_size=4, stride=2, padding=1):
     return nn.Sequential(
@@ -33,8 +20,6 @@ def conv(in_planes, out_planes, kernel_size=3, stride=1, padding=1, dilation=1):
                   padding=padding, dilation=dilation, bias=True),
         nn.PReLU(out_planes)
     )
-    # return DWConv(in_planes, out_planes, stride=stride)#######DWConv修改
-
 class IFBlock(nn.Module):
     def __init__(self, in_planes, c=64):
         super(IFBlock, self).__init__()
@@ -151,3 +136,13 @@ class IFNet(nn.Module):
 #                       opset_version = 16,
 #                       input_names=['imgs'],
 #                       output_names=['flow_list_0','flow_list_1','flow_list_2','mask_list_2','merged_0','merged_1','merged_2'])
+from thop import profile
+import torch
+
+device = torch.device('cuda')
+model = IFNet().to(device)
+input = torch.randn(1, 6, 256, 256).to(device)  # 根据你的输入分辨率设置
+flops, params = profile(model, inputs=(input,), verbose=False)
+
+print(f"FLOPs: {flops / 1e9:.2f} GFLOPs")
+print(f"参数量: {params / 1e6:.2f} M")

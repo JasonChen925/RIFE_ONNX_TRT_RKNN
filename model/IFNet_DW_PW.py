@@ -1,10 +1,10 @@
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
-# from warplayer import warp #生成onnx用
-from model.warplayer import warp  # 插帧用 训练用
-# from refine import * #生成onnx用
-from model.refine import *  # 插帧用 训练用
+from warplayer import warp #生成onnx用
+# from model.warplayer import warp  # 插帧用 训练用
+from refine import * #生成onnx用
+# from model.refine import *  # 插帧用 训练用
 
 
 #
@@ -143,3 +143,14 @@ class IFNet(nn.Module):
         return flow_list, mask_list[2], merged, flow_teacher, merged_teacher, loss_distill
         # #flow_teacher和merged和loss_distill应该是训练过程中才有的东西，推理过程中没有
         # return flow_list,mask_list[2],merged
+
+from thop import profile
+import torch
+
+device = torch.device('cuda')
+model = IFNet().to(device)
+input = torch.randn(1, 6, 256, 256).to(device)  # 根据你的输入分辨率设置
+flops, params = profile(model, inputs=(input,), verbose=False)
+
+print(f"FLOPs: {flops / 1e9:.2f} GFLOPs")
+print(f"参数量: {params / 1e6:.2f} M")

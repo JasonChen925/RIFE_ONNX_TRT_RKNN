@@ -77,4 +77,4 @@ print("最终显存占用: {:.2f} MB, 最终 CPU 内存占用: {:.2f} MB".format
 
 
 for i in range(len(img_list)):
-    cv2.imwrite('test/images/img_ReParam{}.png'.format(i), (img_list[i][0] * 255).byte().cpu().numpy().transpose(1, 2, 0)[:h, :w])
+    cv2.imwrite('test/images/img_InvertedR1B_ratio4_{}.png'.format(i), (img_list[i][0] * 255).byte().cpu().numpy().transpose(1, 2, 0)[:h, :w])

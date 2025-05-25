@@ -1,8 +1,12 @@
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
-from model.warplayer import warp
-from model.refine import *
+
+
+from warplayer import warp #生成onnx用,计算参数量用
+# from model.warplayer import warp   #插帧用 训练用
+from refine import * #生成onnx用
+# from model.refine import *#插帧用 训练用
 
 # Universal Inverted Bottleneck
 class UIB(nn.Module):
@@ -129,3 +133,14 @@ class IFNet(nn.Module):
         merged[2] = torch.clamp(merged[2] + res, 0, 1)
 
         return flow_list, mask_list[2], merged, flow_teacher, merged_teacher, loss_distill
+
+from thop import profile
+import torch
+
+device = torch.device('cuda')
+model = IFNet().to(device)
+input = torch.randn(1, 6, 256, 256).to(device)  # 根据你的输入分辨率设置
+flops, params = profile(model, inputs=(input,), verbose=False)
+
+print(f"FLOPs: {flops / 1e9:.2f} GFLOPs")
+print(f"参数量: {params / 1e6:.2f} M")

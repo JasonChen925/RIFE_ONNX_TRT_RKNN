@@ -92,7 +92,7 @@ class IFNet(nn.Module):
         # self.contextnet = Contextnet()
         # self.unet = Unet()
 
-    def forward(self, x):      #输入x=[1,6,1440,2560]
+    def forward(self, x,):      #输入x=[1,6,1440,2560]
         scale_list = [4, 2, 1]
         channel = x.shape[1] // 2   ## channel = 6//2=3
         img0 = x[:, :channel]    #img0:(1,3,1440,2560)

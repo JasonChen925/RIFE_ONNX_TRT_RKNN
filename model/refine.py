@@ -3,8 +3,8 @@ import torch.nn as nn
 import numpy as np
 import torch.optim as optim
 import itertools
-from model.warplayer import warp#插帧用，训练用
-# from warplayer import warp #生成onnx用
+# from model.warplayer import warp#插帧用，训练用
+from warplayer import warp #生成onnx用,计算参数量用
 import torch.nn.functional as F
 
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
